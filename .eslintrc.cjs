@@ -3,17 +3,14 @@ module.exports = {
 		browser: true,
 		es2021: true,
 	},
-	extends: [
-		'standard-with-typescript',
-		'plugin:react/recommended',
-		'airbnb',
-		'prettier',
-	],
+	extends: ['standard-with-typescript', 'prettier'],
 	overrides: [],
 	parserOptions: {
 		ecmaVersion: 'latest',
 		sourceType: 'module',
 		project: 'tsconfig.json',
 	},
-	rules: {},
+	rules: {
+		'@typescript-eslint/explicit-function-return-type': 'off',
+	},
 };
