@@ -5,14 +5,36 @@ import { Async } from './async';
 import { type ICommandConstructorProps, type IMiddleware } from './types';
 
 export class Command<E extends (...args: any) => any> {
+	/**
+	 * it should be `unique` amoung all commands
+	 */
 	public readonly name: string;
+	/**
+	 * if `true` it will be added to history and both `exec` and `undo` should be provided
+	 */
 	public readonly withHistory: boolean;
+	/**
+	 * if `true` the execution will be queued.
+	 */
 	public readonly withQueue: boolean;
-	public readonly exec;
-	protected middlewares = new Map();
 
+	/**
+	 * @internal
+	 * provided execute will be treated as an internal
+	 * it will be used inside exec method
+	 */
+	private readonly internalExec;
+
+	/**
+	 * `observable`, observe if you want to know when the execution start and when it is done
+	 */
 	public isRunning = new Subject<boolean>();
+	/**
+	 * `observable`, observe if you want to need the data
+	 */
 	public onComplete = new Subject();
+
+	protected middlewares = new Map();
 
 	public use<M>(name: string, middleware: IMiddleware<M>) {
 		if (middleware instanceof Sync || middleware instanceof Async) {
@@ -32,8 +54,11 @@ export class Command<E extends (...args: any) => any> {
 		}
 	}
 
-	public async internalExec(props: Parameters<E>[0]) {
-		if (this.exec instanceof Sync || this.exec instanceof Async) {
+	public async exec(props: Parameters<E>[0]) {
+		if (
+			this.internalExec instanceof Sync ||
+			this.internalExec instanceof Async
+		) {
 			this.isRunning.next(true);
 
 			const res: Record<string, any> = {};
@@ -55,10 +80,10 @@ export class Command<E extends (...args: any) => any> {
 
 				res.mData = mData;
 
-				if (this.exec instanceof Sync) {
-					res.data = this.exec.exec(props);
+				if (this.internalExec instanceof Sync) {
+					res.data = this.internalExec.exec(props);
 				} else {
-					res.data = await this.exec.exec(props);
+					res.data = await this.internalExec.exec(props);
 				}
 			} catch (error) {
 				console.error(error);
@@ -80,7 +105,7 @@ export class Command<E extends (...args: any) => any> {
 	}: ICommandConstructorProps<E>) {
 		if (exec instanceof Sync || exec instanceof Async) {
 			this.name = name;
-			this.exec = exec;
+			this.internalExec = exec;
 			this.withHistory = withHistory;
 			this.withQueue = withQueue;
 		} else {
