@@ -7,7 +7,7 @@ const jestConfig: JestConfigWithTsJest = {
   preset: "ts-jest",
   testEnvironment: "node",
   verbose: true,
-  automock: true,
+  // automock: true,
 };
 
 export default jestConfig;
